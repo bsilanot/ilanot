@@ -1,20 +1,89 @@
 import streamlit as st
 
 def init_styles():
-    """הגדרת עיצוב חזותי רגוע ונגיש עם טקסט גדול ומקרא צבעים"""
-    st.set_page_config(page_title="מערכת מיפוי מיומנויות - חינוך מיוחד", layout="wide")
+    """הזרקת הנדסת עיצוב מתקדמת - כרטיסיות אינטראקטיביות, פונטים גדולים ומקרא צבעים פסטלי"""
+    st.set_page_config(page_title="מערכת מיפוי מיומנויות דיגיטלית", layout="wide", initial_sidebar_state="expanded")
+    
     st.markdown("""
         <style>
-        body { background-color: #f4f7f6; color: #2c3e50; font-size: 18px; direction: rtl; text-align: right; }
-        .stButton>button { background-color: #a8dadc; color: #1d3557; font-size: 16px; border-radius: 8px; font-weight: bold; }
-        .stTabs [data-baseweb="tab"] { font-size: 20px; font-weight: bold; color: #457b9d; }
-        h1, h2, h3 { color: #1d3557; }
-        .rating-box { padding: 10px; border-radius: 5px; margin: 5px 0; font-weight: bold; text-align: center; }
+        @import url('https://googleapis.com');
+        
+        /* הגדרות גופן וכיווניות גלובליות */
+        html, body, [data-testid="stAppViewContainer"] {
+            font-family: 'Assistant', sans-serif !important;
+            background-color: #f4f6f9 !important;
+            direction: rtl !important;
+            text-align: right !important;
+        }
+        
+        /* שיפור הלשוניות העליונות (Tabs) */
+        .stTabs [data-baseweb="tab"] {
+            font-size: 20px !important;
+            font-weight: 800 !important;
+            color: #64748b !important;
+            padding: 14px 28px !important;
+            border-radius: 12px 12px 0 0 !important;
+            transition: all 0.2s ease-in-out;
+        }
+        .stTabs [data-baseweb="tab"]:hover { color: #2563eb !important; background-color: #ea580c10 !important; }
+        .stTabs [aria-selected="true"] { color: #2563eb !important; border-bottom: 4px solid #2563eb !important; background-color: #ffffff !important; }
+        
+        /* עיצוב כרטיסיות מידע (Cards) */
+        .dashboard-card {
+            background: white;
+            padding: 24px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.02);
+            border-top: 5px solid #2563eb;
+            margin-bottom: 20px;
+            transition: transform 0.2s;
+        }
+        .dashboard-card:hover { transform: translateY(-3px); }
+        
+        /* הפיכת רכיב ה-Radio לכפתורי פרימיום מעוצבים צבעוניים */
+        div[data-testid="stRadio"] div[role="radiogroup"] {
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: wrap !important;
+            gap: 15px !important;
+            padding: 10px 0 !important;
+        }
+        div[data-testid="stRadio"] div[role="radiogroup"] label {
+            background-color: #ffffff !important;
+            border: 2px solid #e2e8f0 !important;
+            padding: 14px 24px !important;
+            border-radius: 14px !important;
+            font-size: 17px !important;
+            font-weight: 600 !important;
+            cursor: pointer !important;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.01) !important;
+            transition: all 0.2s ease !important;
+        }
+        div[data-testid="stRadio"] div[role="radiogroup"] label:hover {
+            border-color: #cbd5e1 !important;
+            background-color: #f8fafc !important;
+        }
+        /* התאמת צבע חזותי אקטיבי בעת סימון */
+        div[data-testid="stRadio"] div[role="radiogroup"] [data-checked="true"] label {
+            background-color: #eff6ff !important;
+            border-color: #2563eb !important;
+            color: #2563eb !important;
+        }
+        
+        /* כפתורי מערכת גדולים ומזמינים */
+        .stButton>button {
+            width: 100% !important;
+            padding: 12px 20px !important;
+            border-radius: 12px !important;
+            font-size: 16px !important;
+            font-weight: bold !important;
+            transition: all 0.2s;
+        }
         </style>
     """, unsafe_allow_html=True)
 
 def init_session_state():
-    """אתחול נתוני המערכת בזיכרון (יוחלף בחיבור לגוגל דרייב בהמשך)"""
+    """בסיס הנתונים המשודרג הכולל תמונות הסבר ומבנה קטגוריות מלא"""
     if 'students' not in st.session_state:
         st.session_state.students = [
             {"id": 1, "שם פרטי": "נועם", "שם משפחה": "כהן", "מגדר": "זכר", "כיתה": "א'1", "מורה": "ישראל", "תאריך עדכון": "2026-07-15", "קריאה": "מזהה אותיות", "חשבון": "סופר עד 10", "הנגשה קוגנטיבית": "תיווך חזותי", "מטרות": "לשפר קריאה רציפה"},
@@ -29,11 +98,11 @@ def init_session_state():
 
     if 'mapping_structure' not in st.session_state:
         st.session_state.mapping_structure = {
-            "מוטוריקה עדינה": {
-                "אחיזת עיפרון": {
-                    "אחיזה פונקציונלית": {
-                        "זכר": ["לא אוחז 🔴", "אוחז עם קושי 🟠", "אוחז חלקית 🟡", "אוחז באופן עצמאי ומדויק 🟢"],
-                        "נקבה": ["לא אוחזת 🔴", "אוחזת עם קושי 🟠", "אוחזת חלקית 🟡", "אוחזת באופן עצמאי ומדויק 🟢"]
+            "👋 מוטוריקה עדינה": {
+                "✏️ אחיזת עיפרון": {
+                    "🎯 אחיזה פונקציונלית": {
+                        "זכר": ["🔴 לא אוחז פונקציונלית", "🟠 אוחז בקושי ומתעייף", "🟡 אוחז חלקית עם תזכורת", "🟢 אוחז עצמאי ומדויק"],
+                        "נקבה": ["🔴 לא אוחזת פונקציונלית", "🟠 אוחזת בקושי ומתעייפת", "🟡 אוחזת חלקית עם תזכורת", "🟢 אוחזת עצמאי ומדויקת"]
                     }
                 }
             }
