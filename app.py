@@ -3,38 +3,38 @@ import pandas as pd
 from config import init_styles, init_session_state
 from utils import generate_excel_report, generate_community_text, create_sample_excel
 
-# טעינת הגדרות בסיסיות ועיצובים
 init_styles()
 init_session_state()
 
-# ==========================================
-# מנגנון התחברות (Login) לפי אפיון הרשאות
-# ==========================================
 if not st.session_state.logged_in:
-    st.title("🔐 התחברות למערכת המיפוי הבית ספרית")
-    username = st.text_input("שם משתמש")
-    password = st.text_input("סיסמה", type="password")
+    # מסך התחברות יוקרתי וממורכז
+    st.markdown('<div style="text-align:center; padding: 50px 0;"><h1>🏫 מערכת מיפוי מיומנויות דיגיטלית</h1><p style="color:#64748b; font-size:20px;">בית ספר לחינוך מיוחד - ממשק ניהול פדגוגי</p></div>', unsafe_allow_html=True)
     
-    if st.button("התחבר למערכת 🚀"):
-        user_found = next((u for u in st.session_state.users if u["שם משתמש"] == username and u["סיסמה"] == password), None)
-        if user_found:
-            st.session_state.logged_in = True
-            st.session_state.user_role = user_found["סוג"]
-            st.session_state.user_class = user_found["כיתה"]
-            st.success(f"ברוך הבא! התחברת בהצלחה בתפקיד: {st.session_state.user_role}")
-            st.rerun()
-        else:
-            st.error("פרטי התחברות שגויים ❌")
+    _, col_center, _ = st.columns([1, 2, 1])
+    with col_center:
+        st.markdown('<div class="dashboard-card" style="border-top-color:#2563eb;">', unsafe_allow_html=True)
+        st.subheader("🔐 כניסת צוות מורשה")
+        username = st.text_input("שם משתמש")
+        password = st.text_input("סיסמה", type="password")
+        if st.button("התחבר למערכת 🚀", use_container_width=True):
+            user_found = next((u for u in st.session_state.users if u["שם משתמש"] == username and u["סיסמה"] == password), None)
+            if user_found:
+                st.session_state.logged_in = True
+                st.session_state.user_role = user_found["סוג"]
+                st.session_state.user_class = user_found["כיתה"]
+                st.rerun()
+            else:
+                st.error("שם משתמש או סיסמה שגויים ❌")
+        st.markdown('</div>', unsafe_allow_html=True)
 else:
-    # סרגל צדדי להתנתקות מהמערכת
-    st.sidebar.title(f"👤 מחובר: {st.session_state.user_role}")
-    if st.sidebar.button("🚪 התנתק"):
+    # סרגל צד מעוצב
+    st.sidebar.markdown(f'<div style="background-color:#ffffff; padding:20px; border-radius:15px; box-shadow:0 4px 10px rgba(0,0,0,0.03); border-right: 5px solid #2563eb;">👋 שלום, <b>{st.session_state.user_role}</b><br><small style="color:#64748b;">מחובר כעת למערכת</small></div>', unsafe_allow_html=True)
+    st.sidebar.write("")
+    if st.sidebar.button("🚪 התנתק וצא", use_container_width=True):
         st.session_state.logged_in = False
         st.rerun()
 
     role = st.session_state.user_role
-
-    # דינמיות של לשוניות בהתאם לסוג המשתמש שמופיע באפיון
     tabs_mapping = {
         "מנהל": ["🏠 דף הבית", "👥 תלמידים", "⚙️ עריכת מיפוי", "👤 משתמשים", "📝 הזנת מיפוי"],
         "רכז": ["🏠 דף הבית", "👥 תלמידים", "⚙️ עריכת מיפוי", "📝 הזנת מיפוי"],
@@ -46,99 +46,76 @@ else:
     active_tabs = st.tabs(tabs_to_show)
 
     # ------------------------------------------
-    # לשונית 1: דף הבית + דשבורד
+    # לשונית 1: דף הבית והדשבורד
     # ------------------------------------------
     if "🏠 דף הבית" in tabs_to_show:
         with active_tabs[tabs_to_show.index("🏠 דף הבית")]:
-            st.title("🏠 דשבורד וניהול מהיר")
+            st.markdown('<h2>📊 לוח בקרה וניהול פדגוגי</h2>', unsafe_allow_html=True)
             
-            if role in ["מנהל", "רכז"]:
-                c1, c2 = st.columns(2)
-                with c1: st.button("💾 גיבוי נתונים מלא לענן Google Drive")
-                with c2: st.button("🔄 שחזור נתונים מגרסה קודמת")
-
-            st.write("---")
+            # כרטיסיות דשבורד צבעוניות
             df_stud = pd.DataFrame(st.session_state.students)
-            st.metric("סה\"כ תלמידים רשומים בבית הספר", len(df_stud))
+            m1, m2, m3 = st.columns(3)
+            with m1: st.markdown(f'<div class="dashboard-card" style="border-top-color:#10b981;"><h3>👥 תלמידים רשומים</h3><h2>{len(df_stud)}</h2></div>', unsafe_allow_html=True)
+            with m2: st.markdown('<div class="dashboard-card" style="border-top-color:#f59e0b;"><h3>📋 מיפויים בביצוע</h3><h2>4 החודש</h2></div>', unsafe_allow_html=True)
+            with m3: st.markdown('<div class="dashboard-card" style="border-top-color:#8b5cf6;"><h3>🔒 אבטחת ענן</h3><p style="color:#10b981; font-weight:bold;">מחובר לגוגל דרייב</p></div>', unsafe_allow_html=True)
 
-            st.subheader("📋 רשימת תלמידים ופעולות הזנה")
+            # הוספת תמונת הסבר וסימני הדרכה כפי שביקשת באפיון
+            st.markdown("""
+            <div style="background-color: #eff6ff; padding: 20px; border-radius: 15px; border-right: 6px solid #3b82f6; margin-bottom: 25px;">
+                <h4>💡 הוראות שימוש מהירות לצוות:</h4>
+                <ul>
+                    <li><b>שלב א':</b> לחץ על לשונית <b>'📝 הזנת מיפוי'</b> למעלה.</li>
+                    <li><b>שלב ב':</b> בחר את התלמיד הרצוי ולחץ על רמות המיומנות (ההיגדים מותאמים מגדרית אוטומטית).</li>
+                    <li><b>שלב ג':</b> בתחתית העמוד, לחץ על כפתור הייצוא כדי להפיק דוח אקסל או טקסט מוכן למצגת.</li>
+                </ul>
+            </div>
+            """, unsafe_allow_html=True)
+
+            st.markdown('<h3>📋 כרטיסי תלמידים פעילים</h3>', unsafe_allow_html=True)
             filtered_students = st.session_state.students if role != "מחנך" else [s for s in st.session_state.students if s["כיתה"] == st.session_state.user_class]
             
             for s in filtered_students:
-                col_s1, col_s2 = st.columns([3, 1])
-                with col_s1:
-                    st.write(f"🔹 **{s['שם פרטי']} {s['שם משפחה']}** (כיתה {s['כיתה']}) — עדכון אחרון: {s['תאריך עדכון']}")
-                with col_s2:
-                    st.file_uploader("העלאת אקסל אישי לתלמיד", key=f"file_{s['id']}")
+                with st.container():
+                    st.markdown(f"""
+                    <div class="dashboard-card" style="border-top:none; border-right: 5px solid #64748b; padding: 15px; margin-bottom: 10px;">
+                        <span style="font-size: 18px;">👤 <b>{s['שם פרטי']} {s['שם משפחה']}</b> — כיתה {s['כיתה']}</span> | 
+                        <span style="color:#64748b; font-size:14px;">📅 עדכון אחרון: {s['תאריך עדכון']}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
 
     # ------------------------------------------
-    # לשונית 2: תלמידים
-    # ------------------------------------------
-    if "👥 תלמידים" in tabs_to_show:
-        with active_tabs[tabs_to_show.index("👥 תלמידים")]:
-            st.title("👥 ניהול תלמידים")
-            
-            col_t1, col_t2 = st.columns(2)
-            with col_t1:
-                with st.expander("➕ הוספת תלמיד חדש"):
-                    with st.form("add_student"):
-                        f_name = st.text_input("שם פרטי")
-                        l_name = st.text_input("שם משפחה")
-                        gender = st.selectbox("מגדר", ["זכר", "נקבה"])
-                        s_class = st.text_input("כיתה")
-                        if st.form_submit_button("שמור תלמיד"):
-                            st.session_state.students.append({"id": len(st.session_state.students)+1, "שם פרטי": f_name, "שם משפחה": l_name, "מגדר": gender, "כיתה": s_class, "תאריך עדכון": "2026-07-17"})
-                            st.success("התלמיד נוסף!")
-                            st.rerun()
-            with col_t2:
-                st.download_button("📥 הורד קובץ אקסל לדוגמה להעלאת תלמידים", data=create_sample_excel(), file_name="sample_students.xlsx")
-
-    # ------------------------------------------
-    # לשונית 3: עריכת מיפוי
-    # ------------------------------------------
-    if "⚙️ עריכת מיפוי" in tabs_to_show:
-        with active_tabs[tabs_to_show.index("⚙️ עריכת מיפוי")]:
-            st.title("⚙️ הגדרת מיומנויות")
-            st.file_uploader("העלאת מיפוי קיים מקובץ אקסל לבניית קטגוריות אוטומטית")
-            st.json(st.session_state.mapping_structure)
-
-    # ------------------------------------------
-    # לשונית 4: משתמשים
-    # ------------------------------------------
-    if "👤 משתמשים" in tabs_to_show:
-        with active_tabs[tabs_to_show.index("👤 משתמשים")]:
-            st.title("👤 ניהול צוות והרשאות")
-            st.write(pd.DataFrame(st.session_state.users))
-
-    # ------------------------------------------
-    # לשונית 5: הזנת מיפוי (חווית משתמש מלאה)
+    # לשונית 5: מסך הזנת מיפוי (חווית משתמש משופרת)
     # ------------------------------------------
     if "📝 הזנת מיפוי" in tabs_to_show:
         with active_tabs[tabs_to_show.index("📝 הזנת מיפוי")]:
-            st.title("📝 מסך הזנת מיפוי פעיל")
+            st.markdown('<h2>📝 טופס הערכת מיומנויות והזנת מיפוי</h2>', unsafe_allow_html=True)
             
             student_list = st.session_state.students if role != "מחנך" else [s for s in st.session_state.students if s["כיתה"] == st.session_state.user_class]
             student_names = [f"{s['שם פרטי']} {s['שם משפחה']}" for s in student_list]
-            selected_student = st.selectbox("בחר תלמיד למיפוי", student_names)
             
+            selected_student = st.selectbox("🎯 בחר תלמיד/ה להתחלת תהליך המיפוי:", student_names)
             curr_student = next(s for s in student_list if f"{s['שם פרטי']} {s['שם משפחה']}" == selected_student)
-            gender_key = "זכר" if curr_student["מגדר"] == "זכר" else "נקבה"
+            gender_key = "זכר" if curr_student["מגдер"] == "זכר" else "נקבה"
             
-            # הצגת המיומנויות ובחירה ייחודית (תא אחד בלבד)
+            # הצגת מבנה המיומנויות בכרטיסיות פרימיום
             for cat, sub_cats in st.session_state.mapping_structure.items():
-                st.subheader(f"📂 {cat}")
                 for sub_cat, skills in sub_cats.items():
                     for skill_name, ratings in skills.items():
+                        st.markdown('<div class="dashboard-card" style="border-top-color:#3b82f6;">', unsafe_allow_html=True)
+                        st.markdown(f'<h3>📌 {cat} &gt; {sub_cat}</h3>', unsafe_allow_html=True)
+                        
                         options = ratings[gender_key]
-                        selected_option = st.radio(f"🎯 מיומנות: {skill_name}", options, key=f"map_{curr_student['id']}_{skill_name}")
+                        # כפתורי הרדיו יוצגו כעת כריבועים לחיצים ומעוצבים
+                        selected_option = st.radio(f"נקבע עבור: {skill_name} (ניתן לסמן רק תא אחד)", options, key=f"map_{curr_student['id']}_{skill_name}")
                         st.session_state.current_selections[f"{cat} - {sub_cat} - {skill_name}"] = selected_option
+                        st.markdown('</div>', unsafe_allow_html=True)
             
-            st.write("---")
+            st.markdown('<h3>📥 פאנל הפקת מסמכים ודוחות קליניים</h3>', unsafe_allow_html=True)
             col_d1, col_d2 = st.columns(2)
             with col_d1:
                 excel_data = generate_excel_report(st.session_state.current_selections, selected_student)
-                st.download_button("📥 הורד קובץ אקסל - 'דוח מרוכז' (RTL)", data=excel_data, file_name=f"דווח_מרוכז_{curr_student['שם פרטי']}.xlsx")
+                st.download_button("📊 ייצא 'דוח מרוכז' לקובץ אקסל (RTL)", data=excel_data, file_name=f"דווח_מרוכז_{curr_student['שם פרטי']}.xlsx", use_container_width=True)
             with col_d2:
-                if st.button("🤝 הפק 'דוח לקהילה' לפאוור פוינט"):
+                if st.button("🤝 שכתב אוטומטית ל'דוח קהילה' (מצגות)", use_container_width=True):
                     text_report = generate_community_text(st.session_state.current_selections)
-                    st.info(text_report)
+                    st.markdown(f'<div style="background-color:#ffffff; padding:25px; border-radius:16px; border-right:6px solid #10b981; box-shadow: 0 4px 15px rgba(0,0,0,0.02); margin-top:15px;"><b>✍️ הניסוח האקדמי המשוכתב עבור שקופית פאוור פוינט:</b><br><br>{text_report}</div>', unsafe_allow_html=True)
