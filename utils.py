@@ -1,50 +1,115 @@
-import pandas as pd
-from io import BytesIO
+import streamlit as st
 
-def generate_excel_report(selections, student_name):
-    """יצירת דוח מרוכז באקסל נקי, מקודד לעברית ומימין לשמאל"""
-    report_rows = []
-    for key, val in selections.items():
-        cat, sub_cat, skill = key.split(" - ")
-        # הסרת אמוג'י הצבעים לצורך דוח נקי
-        clean_val = val.replace("🔴", "").replace("🟠", "").replace("🟡", "").replace("🟢", "").strip()
-        report_rows.append({"קטגוריה": cat, "תת קטגוריה": sub_cat, "מיומנות": skill, "היגד שנבחר": clean_val})
+def init_styles():
+    """הזרקת הנדסת עיצוב מתקדמת - כרטיסיות אינטראקטיביות, פונטים גדולים ומקרא צבעים פסטלי"""
+    st.set_page_config(page_title="מערכת מיפוי מיומנויות דיגיטלית", layout="wide", initial_sidebar_state="expanded")
     
-    df_report = pd.DataFrame(report_rows)
-    buffer = BytesIO()
-    
-    with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-        df_report.to_excel(writer, index=False, sheet_name="דוח מרוכז")
-        workbook  = writer.book
-        worksheet = writer.sheets['דוח מרוכז']
-        worksheet.right_to_left()  # הגדרת כיוון הדף מימין לשמאל
+    st.markdown("""
+        <style>
+        @import url('https://googleapis.com');
         
-    return buffer.getvalue()
-
-def generate_community_text(selections):
-    """שכתוב הנתונים לפיסקה רציפה עבור מצגת פאוור פוינט לקהילה"""
-    paragraphs = []
-    for key, val in selections.items():
-        cat_info = key.split(" - ")
-        clean_val = val.replace("🔴", "").replace("🟠", "").replace("🟡", "").replace("🟢", "").strip()
-        paragraphs.append(f"בתחום {cat_info[0]} ובהקשר של {cat_info[2]}, נצפה כי {clean_val}.")
-    
-    # חיבור משפטים עם מילות קישור בסיסיות וסימני פיסוק
-    full_text = " כמו כן, ".join(paragraphs)
-    # הסרת דוגמאות במידה וקיימות בסוגריים
-    if "(" in full_text and ")" in full_text:
-        full_text = full_text.split("(")[0] + full_text.split(")")[-1]
+        /* הגדרות גופן וכיווניות גלובליות */
+        html, body, [data-testid="stAppViewContainer"] {
+            font-family: 'Assistant', sans-serif !important;
+            background-color: #f4f6f9 !important;
+            direction: rtl !important;
+            text-align: right !important;
+        }
         
-    return full_text
+        /* שיפור הלשוניות העליונות (Tabs) */
+        .stTabs [data-baseweb="tab"] {
+            font-size: 20px !important;
+            font-weight: 800 !important;
+            color: #64748b !important;
+            padding: 14px 28px !important;
+            border-radius: 12px 12px 0 0 !important;
+            transition: all 0.2s ease-in-out;
+        }
+        .stTabs [data-baseweb="tab"]:hover { color: #2563eb !important; background-color: #ea580c10 !important; }
+        .stTabs [aria-selected="true"] { color: #2563eb !important; border-bottom: 4px solid #2563eb !important; background-color: #ffffff !important; }
+        
+        /* עיצוב כרטיסיות מידע (Cards) */
+        .dashboard-card {
+            background: white;
+            padding: 24px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.02);
+            border-top: 5px solid #2563eb;
+            margin-bottom: 20px;
+            transition: transform 0.2s;
+        }
+        .dashboard-card:hover { transform: translateY(-3px); }
+        
+        /* הפיכת רכיב ה-Radio לכפתורי פרימיום מעוצבים צבעוניים */
+        div[data-testid="stRadio"] div[role="radiogroup"] {
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: wrap !important;
+            gap: 15px !important;
+            padding: 10px 0 !important;
+        }
+        div[data-testid="stRadio"] div[role="radiogroup"] label {
+            background-color: #ffffff !important;
+            border: 2px solid #e2e8f0 !important;
+            padding: 14px 24px !important;
+            border-radius: 14px !important;
+            font-size: 17px !important;
+            font-weight: 600 !important;
+            cursor: pointer !important;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.01) !important;
+            transition: all 0.2s ease !important;
+        }
+        div[data-testid="stRadio"] div[role="radiogroup"] label:hover {
+            border-color: #cbd5e1 !important;
+            background-color: #f8fafc !important;
+        }
+        /* התאמת צבע חזותי אקטיבי בעת סימון */
+        div[data-testid="stRadio"] div[role="radiogroup"] [data-checked="true"] label {
+            background-color: #eff6ff !important;
+            border-color: #2563eb !important;
+            color: #2563eb !important;
+        }
+        
+        /* כפתורי מערכת גדולים ומזמינים */
+        .stButton>button {
+            width: 100% !important;
+            padding: 12px 20px !important;
+            border-radius: 12px !important;
+            font-size: 16px !important;
+            font-weight: bold !important;
+            transition: all 0.2s;
+        }
+        </style>
+    """, unsafe_allow_html=True)
 
-def create_sample_excel():
-    """יצירת קובץ אקסל לדוגמה להעלאת תלמידים חדשים למערכת"""
-    sample_data = pd.DataFrame([{
-        "שם פרטי": "ישראל", "שם משפחה": "ישראלי", "זכר/נקבה": "זכר", "תאריך לידה": "2015-01-01",
-        "שם האם": "שרה", "שם האב": "משה", "סטטוס הורים": "נשואים", "עיר מגורים": "ירושלים",
-        "שם המורה": "ישראל", "הכיתה": "א'1", "קריאה": "בסיסית", "חשבון": "בסיסי", "הנגשה קוגנטיבית": "תיווך חזותי", "מטרות": "יעדים שנתיים"
-    }])
-    buffer = BytesIO()
-    with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-        sample_data.to_excel(writer, index=False)
-    return buffer.getvalue()
+def init_session_state():
+    """בסיס הנתונים המשודרג הכולל תמונות הסבר ומבנה קטגוריות מלא"""
+    if 'students' not in st.session_state:
+        st.session_state.students = [
+            {"id": 1, "שם פרטי": "נועם", "שם משפחה": "כהן", "מגדר": "זכר", "כיתה": "א'1", "מורה": "ישראל", "תאריך עדכון": "2026-07-15", "קריאה": "מזהה אותיות", "חשבון": "סופר עד 10", "הנגשה קוגנטיבית": "תיווך חזותי", "מטרות": "לשפר קריאה רציפה"},
+            {"id": 2, "שם פרטי": "שירה", "שם משפחה": "לוי", "מגדר": "נקבה", "כיתה": "ב'3", "מורה": "רחל", "תאריך עדכון": "2026-07-16", "קריאה": "קוראת מילים", "חשבון": "חיבור עד 5", "הנגשה קוגנטיבית": "הקראה", "מטרות": "עצמאות בפתרון תרגילים"}
+        ]
+
+    if 'users' not in st.session_state:
+        st.session_state.users = [
+            {"שם פרטי": "אדמין", "שם משפחה": "ראשי", "סוג": "מנהל", "כיתה": "הכל", "שם משתמש": "admin", "סיסמה": "admin"},
+            {"שם פרטי": "רחל", "שם משפחה": "מורה", "סוג": "מחנך", "כיתה": "ב'3", "שם משתמש": "rachel", "סיסמה": "1234"}
+        ]
+
+    if 'mapping_structure' not in st.session_state:
+        st.session_state.mapping_structure = {
+            "👋 מוטוריקה עדינה": {
+                "✏️ אחיזת עיפרון": {
+                    "🎯 אחיזה פונקציונלית": {
+                        "זכר": ["🔴 לא אוחז פונקציונלית", "🟠 אוחז בקושי ומתעייף", "🟡 אוחז חלקית עם תזכורת", "🟢 אוחז עצמאי ומדויק"],
+                        "נקבה": ["🔴 לא אוחזת פונקציונלית", "🟠 אוחזת בקושי ומתעייפת", "🟡 אוחזת חלקית עם תזכורת", "🟢 אוחזת עצמאי ומדויקת"]
+                    }
+                }
+            }
+        }
+
+    if 'logged_in' not in st.session_state:
+        st.session_state.logged_in = False
+        st.session_state.user_role = None
+        st.session_state.user_class = None
+        st.session_state.current_selections = {}
